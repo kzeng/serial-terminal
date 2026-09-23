@@ -55,7 +55,7 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
 
   @override
   void dispose() {
-    _disconnect();
+    _disconnect(updateState: false);
     _sendController.dispose();
     _logController.dispose();
     super.dispose();
@@ -96,13 +96,13 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
     _append('已连接 $name @ $_baudRate');
   }
 
-  void _disconnect() {
+  void _disconnect({bool updateState = true}) {
     _subscription?.cancel();
     _subscription = null;
     _port?.close();
     _port?.dispose();
     _port = null;
-    if (mounted) setState(() => _connected = false);
+    if (updateState && mounted) setState(() => _connected = false);
   }
 
   void _receive(Uint8List data) {

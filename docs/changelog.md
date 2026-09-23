@@ -16,3 +16,4 @@
 - 修复 `flutter analyze` 报告的未使用 `_reader` 字段警告。
 - 修复 Widget 测试加载 `serialport.dll` 导致失败的问题。
 - 增加串口枚举失败时的错误提示。
+- 修复测试销毁 Widget 时的 `setState` 生命周期断言。
