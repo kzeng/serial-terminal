@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_libserialport/flutter_libserialport.dart';
 
-const appVersion = '0.0.1';
+const appVersion = '0.0.2';
 
 void main() => runApp(const SerialTerminalApp());
 
