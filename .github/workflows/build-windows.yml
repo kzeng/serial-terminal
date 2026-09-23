@@ -35,7 +35,13 @@ jobs:
         run: |
           $path = 'windows/runner/main.cpp'
           $content = Get-Content -Raw -Encoding UTF8 $path
-          $content = $content -replace 'L"serial_terminal"', 'L"串口调试助手"'
+          # Keep the C++ source ASCII-only so MSVC's source-code encoding cannot
+          # corrupt the Chinese title. C++ expands these universal characters.
+          $windowTitle = 'L"\u4E32\u53E3\u8C03\u8BD5\u52A9\u624B"'
+          $content = $content -replace 'L"serial_terminal"', $windowTitle
+          if ($content -notmatch [regex]::Escape($windowTitle)) {
+            throw 'Failed to set the Windows window title.'
+          }
           Set-Content -Encoding UTF8 -NoNewline -Path $path -Value $content
 
       - name: Get dependencies
