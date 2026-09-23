@@ -15,6 +15,8 @@ Flutter Windows 串口调试助手。
 - [产品需求](docs/product-requirements.md)
 - [开发记录](docs/development-log.md)
 - [变更记录](docs/changelog.md)
+- [MIT License](LICENSE)
+- [代码签名策略](docs/code-signing-policy.md)
 
 ## VS Code 插件
 
@@ -35,3 +37,8 @@ Flutter Windows 串口调试助手。
 ## CI
 
 提交或推送后，Actions 会在 Windows runner 上固定版本安装 Flutter，执行依赖安装、分析、测试和 Windows Release 构建，并上传发布目录。
+
+## 代码签名
+
+项目采用 MIT License。Windows 发布产物计划通过 SignPath Foundation 进行
+Authenticode 签名；签名流程和验证规则见[代码签名策略](docs/code-signing-policy.md)。

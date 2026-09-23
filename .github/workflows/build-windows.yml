@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   windows:
@@ -55,6 +56,47 @@ jobs:
 
       - name: Build Windows release
         run: flutter build windows --release
+
+      - name: Upload unsigned Windows artifact for SignPath
+        id: upload-unsigned-windows
+        if: ${{ github.ref == 'refs/heads/main' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: serial-terminal-windows-unsigned
+          path: build/windows/x64/runner/Release
+          if-no-files-found: error
+
+      - name: Submit Windows artifact to SignPath
+        id: sign-windows
+        if: ${{ github.ref == 'refs/heads/main' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-windows.outputs.artifact-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-for-completion: true
+          output-artifact-directory: build/windows/signed
+
+      - name: Replace build output with signed files
+        if: ${{ steps.sign-windows.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $signedRoot = (Resolve-Path 'build/windows/signed').Path
+          $releaseRoot = (Resolve-Path 'build/windows/x64/runner/Release').Path
+          $signedExe = Get-ChildItem -Path $signedRoot -Filter 'serial_terminal.exe' -Recurse -File
+          if (-not $signedExe) {
+            throw 'SignPath returned no signed serial_terminal.exe.'
+          }
+          Get-ChildItem -Path $signedRoot -Recurse -File | ForEach-Object {
+            $relative = $_.FullName.Substring($signedRoot.Length).TrimStart('\', '/')
+            $target = Join-Path $releaseRoot $relative
+            New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
+            Copy-Item -LiteralPath $_.FullName -Destination $target -Force
+          }
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4

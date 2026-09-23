@@ -55,3 +55,9 @@
 - 下拉控件统一使用 48px 选项高度，并限制菜单最大高度为 420px。
 - 原生窗口标题继续采用 ASCII-only 的 C++ 宽字符 Unicode 转义，避免中文源文件编码影响标题栏显示。
 - 版本号更新为 `0.0.4`。
+### 2026-09-23（开源与签名准备）
+
+- 根据确认采用 MIT License，新增根目录 `LICENSE`。
+- 新增 `docs/code-signing-policy.md`，说明签名范围、审核规则、秘密管理和用户验证方式。
+- GitHub Actions 增加 SignPath Foundation 官方 Action 的签名骨架：先上传未签名产物，签名完成后替换构建目录，再上传最终产物。
+- SignPath 参数仅在 `main` 分支且配置了 `SIGNPATH_ORGANIZATION_ID` 时启用；未完成 SignPath 审批或配置时仍保留普通未签名构建。
