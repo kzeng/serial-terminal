@@ -33,7 +33,6 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
   final _sendController = TextEditingController();
   final _logController = ScrollController();
   SerialPort? _port;
-  SerialPortReader? _reader;
   StreamSubscription<Uint8List>? _subscription;
   List<String> _ports = const [];
   String? _selectedPort;
@@ -83,7 +82,6 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
     _subscription = reader.stream.listen(_receive);
     setState(() {
       _port = port;
-      _reader = reader;
       _connected = true;
     });
     _append('已连接 $name @ $_baudRate');
@@ -92,7 +90,6 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
   void _disconnect() {
     _subscription?.cancel();
     _subscription = null;
-    _reader = null;
     _port?.close();
     _port?.dispose();
     _port = null;

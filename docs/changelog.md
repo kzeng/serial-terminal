@@ -10,3 +10,7 @@
 - 增加时间戳、自动滚动、清空日志和发送区。
 - 增加 VS Code 开发插件建议。
 - 增加 GitHub Actions Windows 构建流程。
+
+### Fixed
+
+- 修复 `flutter analyze` 报告的未使用 `_reader` 字段警告。

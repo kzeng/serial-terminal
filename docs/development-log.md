@@ -15,3 +15,8 @@
 
 - 本机没有 Flutter SDK，当前无法本地执行 `flutter analyze`、`flutter test` 或 `flutter build windows`。
 - 需要 GitHub Actions 首次运行后确认 Flutter 包 API、Windows 原生库打包和真实串口行为。
+
+### CI 静态分析修复
+
+- 移除未使用的 `_reader` 状态字段。
+- 保留读取流订阅作为串口接收生命周期的管理对象。
