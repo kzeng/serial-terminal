@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_libserialport/flutter_libserialport.dart';
 
+const appVersion = '0.0.1';
+
 void main() => runApp(const SerialTerminalApp());
 
 class SerialTerminalApp extends StatelessWidget {
@@ -17,7 +19,7 @@ class SerialTerminalApp extends StatelessWidget {
     const accent = Color(0xFF008577);
     final scheme = ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.light);
     return MaterialApp(
-      title: 'Serial Terminal',
+      title: '串口调试助手',
       theme: ThemeData(
         colorScheme: scheme,
         useMaterial3: true,
@@ -61,6 +63,7 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
   bool _hexSend = false;
   bool _showTimestamp = true;
   bool _autoScroll = true;
+  String _statusMessage = '就绪';
   final List<String> _lines = [];
 
   bool get _canEditConnection => !_connected;
@@ -149,7 +152,12 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
     _port?.close();
     _port?.dispose();
     _port = null;
-    if (updateState && mounted) setState(() => _connected = false);
+    if (updateState && mounted) {
+      setState(() {
+        _connected = false;
+        _statusMessage = '已断开连接';
+      });
+    }
   }
 
   void _receive(Uint8List data) {
@@ -199,7 +207,10 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
   void _append(String line) {
     if (!mounted) return;
     final prefix = _showTimestamp ? '${DateTime.now().toLocal().toIso8601String()}  ' : '';
-    setState(() => _lines.add('$prefix$line'));
+    setState(() {
+      _lines.add('$prefix$line');
+      _statusMessage = line;
+    });
     if (_autoScroll) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_logController.hasClients) {
@@ -237,21 +248,51 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
       appBar: AppBar(
         titleSpacing: 20,
         title: const Row(children: [Icon(Icons.cable, size: 22), SizedBox(width: 10), Text('串口调试助手')]),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(color: _connected ? colors.primaryContainer : colors.surfaceContainerHighest, borderRadius: BorderRadius.circular(20)),
-            child: Row(children: [Icon(Icons.circle, size: 9, color: _connected ? colors.primary : colors.outline), const SizedBox(width: 7), Text(_connected ? '已连接' : '未连接')]),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(width: 300, child: _buildConnectionPanel(colors)),
+                const VerticalDivider(width: 1),
+                Expanded(child: _buildTerminalPanel(colors)),
+              ],
+            ),
           ),
+          _buildStatusBar(colors),
         ],
       ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    );
+  }
+
+  Widget _buildStatusBar(ColorScheme colors) {
+    return Container(
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest,
+        border: Border(top: BorderSide(color: colors.outlineVariant)),
+      ),
+      child: Row(
         children: [
-          SizedBox(width: 300, child: _buildConnectionPanel(colors)),
-          const VerticalDivider(width: 1),
-          Expanded(child: _buildTerminalPanel(colors)),
+          Icon(Icons.circle, size: 9, color: _connected ? colors.primary : colors.outline),
+          const SizedBox(width: 7),
+          Text(_connected ? '已连接' : '未连接', style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(width: 18),
+          Container(width: 1, height: 16, color: colors.outlineVariant),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Text(
+              _statusMessage,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Text('版本 $appVersion', style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12)),
         ],
       ),
     );

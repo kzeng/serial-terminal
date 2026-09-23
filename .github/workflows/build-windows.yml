@@ -30,6 +30,14 @@ jobs:
       - name: Generate Windows platform files
         run: flutter create --platforms=windows .
 
+      - name: Set Windows window title
+        shell: pwsh
+        run: |
+          $path = 'windows/runner/main.cpp'
+          $content = Get-Content -Raw -Encoding UTF8 $path
+          $content = $content -replace 'L"serial_terminal"', 'L"串口调试助手"'
+          Set-Content -Encoding UTF8 -NoNewline -Path $path -Value $content
+
       - name: Get dependencies
         run: flutter pub get
 
