@@ -120,7 +120,7 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
         _port = port;
         _connected = true;
       });
-      _append('已连接 $name · $_baudRate $_dataBits-${_parityName}$_stopBits');
+      _append('已连接 $name · $_baudRate $_dataBits-$_parityName$_stopBits');
     } catch (error) {
       port.close();
       port.dispose();
@@ -313,7 +313,39 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
           OutlinedButton.icon(onPressed: () => setState(_lines.clear), icon: const Icon(Icons.delete_outline, size: 18), label: const Text('清空')),
         ]),
         const SizedBox(height: 10),
-        Expanded(child: Container(decoration: BoxDecoration(color: const Color(0xFF172126), borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.all(14), child: _lines.isEmpty ? Center(child: Text('暂无数据\n连接串口后，接收内容会显示在这里', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withOpacity(0.55), height: 1.8))) : ListView.builder(controller: _logController, itemCount: _lines.length, itemBuilder: (_, index) => SelectableText(_lines[index], style: const TextStyle(color: Color(0xFFD6E6E3), fontFamily: 'Cascadia Mono', fontSize: 13, height: 1.5)))),
+        Expanded(
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF172126),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.all(14),
+            child: _lines.isEmpty
+                ? Center(
+                    child: Text(
+                      '暂无数据\n连接串口后，接收内容会显示在这里',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.55),
+                        height: 1.8,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _logController,
+                    itemCount: _lines.length,
+                    itemBuilder: (_, index) => SelectableText(
+                      _lines[index],
+                      style: const TextStyle(
+                        color: Color(0xFFD6E6E3),
+                        fontFamily: 'Cascadia Mono',
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+          ),
+        ),
         const SizedBox(height: 12),
         Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Expanded(child: TextField(controller: _sendController, minLines: 1, maxLines: 4, decoration: const InputDecoration(labelText: '发送数据', hintText: '输入文本或 HEX 字节，例如：01 03 00 00'))),
