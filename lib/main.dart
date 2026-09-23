@@ -10,20 +10,24 @@ void main() {
 }
 
 class SerialTerminalApp extends StatelessWidget {
-  const SerialTerminalApp({super.key});
+  const SerialTerminalApp({super.key, this.loadPorts = true});
+
+  final bool loadPorts;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Serial Terminal',
       theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
-      home: const SerialTerminalPage(),
+      home: SerialTerminalPage(loadPorts: loadPorts),
     );
   }
 }
 
 class SerialTerminalPage extends StatefulWidget {
-  const SerialTerminalPage({super.key});
+  const SerialTerminalPage({super.key, this.loadPorts = true});
+
+  final bool loadPorts;
 
   @override
   State<SerialTerminalPage> createState() => _SerialTerminalPageState();
@@ -46,7 +50,7 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
   @override
   void initState() {
     super.initState();
-    _refreshPorts();
+    if (widget.loadPorts) _refreshPorts();
   }
 
   @override
@@ -58,12 +62,17 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
   }
 
   void _refreshPorts() {
-    setState(() {
-      _ports = SerialPort.availablePorts;
-      _selectedPort = _ports.contains(_selectedPort)
-          ? _selectedPort
-          : (_ports.isEmpty ? null : _ports.first);
-    });
+    try {
+      final ports = SerialPort.availablePorts;
+      setState(() {
+        _ports = ports;
+        _selectedPort = _ports.contains(_selectedPort)
+            ? _selectedPort
+            : (_ports.isEmpty ? null : _ports.first);
+      });
+    } catch (error) {
+      _append('枚举串口失败: $error');
+    }
   }
 
   void _connect() {
