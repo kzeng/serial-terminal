@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_libserialport/flutter_libserialport.dart';
 
-const appVersion = '0.0.3';
+const appVersion = '0.0.4';
 
 void main() => runApp(const SerialTerminalApp());
 
@@ -228,6 +228,9 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
   }) {
     return DropdownButtonFormField<T>(
       value: value,
+      itemHeight: 48,
+      menuMaxHeight: 420,
+      isDense: false,
       decoration: InputDecoration(labelText: label),
       items: items,
       onChanged: _canEditConnection ? onChanged : null,
