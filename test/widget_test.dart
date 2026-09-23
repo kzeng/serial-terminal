@@ -6,8 +6,8 @@ void main() {
   testWidgets('shows the serial terminal shell', (tester) async {
     await tester.pumpWidget(const SerialTerminalApp(loadPorts: false));
 
-    expect(find.text('Serial Terminal'), findsOneWidget);
-    expect(find.text('连接'), findsOneWidget);
+    expect(find.text('串口调试助手'), findsOneWidget);
+    expect(find.text('打开串口'), findsOneWidget);
     expect(find.text('发送'), findsOneWidget);
   });
 }
