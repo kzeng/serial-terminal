@@ -3,11 +3,27 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_libserialport/flutter_libserialport.dart';
+import 'package:window_manager/window_manager.dart';
 
 const appVersion = '0.0.4';
 
-void main() => runApp(const SerialTerminalApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
+  const windowOptions = WindowOptions(
+    size: Size(1400, 900),
+    minimumSize: Size(1100, 700),
+    center: true,
+    title: '串口调试助手',
+  );
+  await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+  runApp(const SerialTerminalApp());
+}
 
 class SerialTerminalApp extends StatelessWidget {
   const SerialTerminalApp({super.key, this.loadPorts = true});
@@ -118,7 +134,11 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
         config.dispose();
       }
       final reader = SerialPortReader(port);
-      _subscription = reader.stream.listen(_receive, onError: (Object error) => _append('接收错误: $error'));
+      _subscription = reader.stream.listen(
+        _receive,
+        onError: (Object error) => _handleReaderError(error),
+        onDone: _handleReaderDone,
+      );
       setState(() {
         _port = port;
         _connected = true;
@@ -146,16 +166,28 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
     }
   }
 
-  void _disconnect({bool updateState = true}) {
+  void _handleReaderError(Object error) {
+    if (!mounted) return;
+    _append('接收错误: $error');
+    _disconnect(statusMessage: '串口读取异常，已断开连接');
+  }
+
+  void _handleReaderDone() {
+    if (!mounted || !_connected) return;
+    _disconnect(statusMessage: '串口读取已结束，已断开连接');
+  }
+
+  void _disconnect({bool updateState = true, String? statusMessage}) {
     _subscription?.cancel();
     _subscription = null;
     _port?.close();
     _port?.dispose();
     _port = null;
-    if (updateState && mounted) {
+    if (mounted && (updateState || _connected)) {
       setState(() {
         _connected = false;
-        _statusMessage = '已断开连接';
+        if (statusMessage != null) _statusMessage = statusMessage;
+        if (statusMessage == null && updateState) _statusMessage = '已断开连接';
       });
     }
   }
@@ -218,6 +250,13 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
         }
       });
     }
+  }
+
+  Future<void> _copyLogs() async {
+    if (_lines.isEmpty) return;
+    await Clipboard.setData(ClipboardData(text: _lines.join('\n')));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('通信日志已复制')));
   }
 
   Widget _select<T>({
@@ -350,6 +389,8 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
           const Spacer(),
           Text('${_lines.length} 条', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colors.onSurfaceVariant)),
           const SizedBox(width: 12),
+          OutlinedButton.icon(onPressed: _lines.isEmpty ? null : _copyLogs, icon: const Icon(Icons.copy, size: 18), label: const Text('复制日志')),
+          const SizedBox(width: 8),
           OutlinedButton.icon(onPressed: () => setState(_lines.clear), icon: const Icon(Icons.delete_outline, size: 18), label: const Text('清空')),
         ]),
         const SizedBox(height: 10),
