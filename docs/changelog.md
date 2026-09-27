@@ -5,6 +5,10 @@
 - 添加 MIT License 和公开代码签名策略。
 - 准备 SignPath Foundation GitHub Actions 签名流程；获得项目批准并配置变量后，主分支构建会自动提交 Windows 产物签名。
 
+## 0.0.5
+
+- 增加 Ubuntu 22.04 amd64 构建，并发布 `.deb` 安装包和 Linux 压缩包。
+
 ## 0.0.4
 
 - 增大下拉列表选项高度，改善 Windows 桌面鼠标操作体验。
