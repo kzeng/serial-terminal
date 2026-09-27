@@ -12,8 +12,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
   const windowOptions = WindowOptions(
-    size: Size(1400, 900),
-    minimumSize: Size(1100, 700),
+    // 13.3-inch MacBooks provide about 1280x800 logical pixels at the
+    // default Retina scaling. Keep the initial window below that workspace.
+    size: Size(1200, 760),
+    minimumSize: Size(960, 640),
     center: true,
     title: '串口调试助手',
   );
@@ -266,9 +268,12 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
   }) {
     return DropdownButtonFormField<T>(
       value: value,
-      itemHeight: 48,
-      menuMaxHeight: 420,
-      isDense: false,
+      // Keep the Material minimum interactive height; constrain the menu
+      // itself instead of making each option too small to use comfortably.
+      itemHeight: null,
+      menuMaxHeight: 280,
+      isDense: true,
+      isExpanded: true,
       decoration: InputDecoration(labelText: label),
       items: items,
       onChanged: _canEditConnection ? onChanged : null,
@@ -293,13 +298,18 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
       body: Column(
         children: [
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(width: 300, child: _buildConnectionPanel(colors)),
-                const VerticalDivider(width: 1),
-                Expanded(child: _buildTerminalPanel(colors)),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final panelWidth = (constraints.maxWidth * 0.28).clamp(260.0, 300.0).toDouble();
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(width: panelWidth, child: _buildConnectionPanel(colors)),
+                    const VerticalDivider(width: 1),
+                    Expanded(child: _buildTerminalPanel(colors)),
+                  ],
+                );
+              },
             ),
           ),
           _buildStatusBar(colors),
@@ -351,7 +361,25 @@ class _SerialTerminalPageState extends State<SerialTerminalPage> {
           const SizedBox(height: 20),
           _sectionTitle('端口'),
           Row(children: [
-            Expanded(child: _select<String>(label: '串口', value: _selectedPort, items: _ports.map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(), onChanged: (value) => setState(() => _selectedPort = value))),
+            Expanded(
+              child: _select<String>(
+                label: '串口',
+                value: _selectedPort,
+                items: _ports
+                    .map(
+                      (p) => DropdownMenuItem(
+                        value: p,
+                        child: Tooltip(
+                          message: p,
+                          waitDuration: const Duration(milliseconds: 500),
+                          child: Text(p, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() => _selectedPort = value),
+              ),
+            ),
             const SizedBox(width: 8),
             IconButton(onPressed: _refreshPorts, tooltip: '刷新串口', icon: const Icon(Icons.refresh)),
           ]),
