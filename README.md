@@ -7,7 +7,7 @@ Flutter Windows 串口调试助手。
 - 本机编辑器：Visual Studio Code
 - 本机 Flutter SDK：不安装
 - 本机运行/构建：不执行
-- CI：GitHub Actions Windows runner
+- CI：GitHub Actions Windows runner 和 macOS Intel runner
 - 串口后端：`flutter_libserialport`
 
 ## 文档
@@ -36,7 +36,7 @@ Flutter Windows 串口调试助手。
 
 ## CI
 
-提交或推送后，Actions 会在 Windows runner 上固定版本安装 Flutter，执行依赖安装、分析、测试和 Windows Release 构建，并上传发布目录。
+提交或推送后，Actions 会在 Windows runner 和 macOS Intel runner 上固定版本安装 Flutter，执行依赖安装、分析、测试和对应平台的 Release 构建，并上传发布产物。macOS 构建使用 GitHub Actions 的 `macos-15-intel` runner，设置 `MACOSX_DEPLOYMENT_TARGET=13.7`，兼容 macOS 13.7.8 及更高版本；不额外安装 Apple SDK。
 
 ## 代码签名
 
