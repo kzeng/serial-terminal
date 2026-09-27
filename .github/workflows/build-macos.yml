@@ -40,6 +40,11 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Install libserialport build tools
+        # flutter_libserialport builds libserialport from source through CocoaPods.
+        # These are build tools, not an Apple SDK.
+        run: brew install automake libtool
+
       - name: Analyze
         run: flutter analyze
 
