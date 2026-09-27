@@ -66,9 +66,47 @@ jobs:
       - name: Package Linux artifact
         run: tar -czf serial-terminal-linux-amd64.tar.gz -C build/linux/x64/release bundle
 
+      - name: Package Debian artifact
+        run: |
+          package_root="package/serial-terminal"
+          package_version="$(sed -n "s/^version: \([^+]*\).*/\1/p" pubspec.yaml)"
+
+          mkdir -p \
+            "$package_root/DEBIAN" \
+            "$package_root/opt/serial-terminal" \
+            "$package_root/usr/share/applications"
+          cp -a build/linux/x64/release/bundle/. "$package_root/opt/serial-terminal/"
+
+          printf '%s\n' \
+            'Package: serial-terminal' \
+            "Version: $package_version" \
+            'Section: devel' \
+            'Priority: optional' \
+            'Architecture: amd64' \
+            'Maintainer: Serial Terminal contributors' \
+            'Depends: libgtk-3-0, liblzma5' \
+            'Description: Flutter serial terminal' \
+            ' A desktop serial terminal built with Flutter.' \
+            > "$package_root/DEBIAN/control"
+
+          printf '%s\n' \
+            '[Desktop Entry]' \
+            'Name=Serial Terminal' \
+            'Comment=Flutter serial terminal' \
+            'Exec=/opt/serial-terminal/serial_terminal' \
+            'Terminal=false' \
+            'Type=Application' \
+            'Categories=Development;Utility;' \
+            > "$package_root/usr/share/applications/serial-terminal.desktop"
+
+          dpkg-deb --build --root-owner-group \
+            "$package_root" "serial-terminal_${package_version}_amd64.deb"
+
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: serial-terminal-linux-amd64
-          path: serial-terminal-linux-amd64.tar.gz
+          path: |
+            serial-terminal-linux-amd64.tar.gz
+            serial-terminal_*_amd64.deb
           if-no-files-found: error
